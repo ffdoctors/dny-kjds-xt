@@ -995,7 +995,7 @@ async def import_sales(
     imported = 0
     for _, row in df.iterrows():
         try:
-            date = str(row.get('日期', row.get('date', datetime.now().strftime("%Y-%m-%d")))
+            date = str(row.get('日期', row.get('date', datetime.now().strftime("%Y-%m-%d"))))
             platform = str(row.get('平台', row.get('platform', 'Shopee')))
             country = str(row.get('国家', row.get('country', '泰国')))
             product = str(row.get('产品', row.get('product', '未知产品')))
