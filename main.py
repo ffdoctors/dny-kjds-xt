@@ -369,7 +369,7 @@ def seed_demo_data(db: Session, tenant_id: uuid.UUID):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 启动时初始化
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)  # 注释这行！
     db = SessionLocal()
     try:
         init_default_data(db)
