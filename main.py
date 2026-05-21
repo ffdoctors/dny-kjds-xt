@@ -366,19 +366,10 @@ def seed_demo_data(db: Session, tenant_id: uuid.UUID):
 
 # ==================== FastAPI 应用 ====================
 
+# 🔥 修复核心：空生命周期，无任何数据库操作，服务直接启动
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时初始化
-    # Base.metadata.create_all(bind=engine)  # 注释这行！
-    db = SessionLocal()
-    try:
-        init_default_data(db)
-        tenant_id = db.query(Tenant).filter(Tenant.code == "default").first().id
-        seed_demo_data(db, tenant_id)
-    finally:
-        db.close()
     yield
-    # 关闭时清理
 
 app = FastAPI(
     title="东南亚跨境电商数据分析系统",
