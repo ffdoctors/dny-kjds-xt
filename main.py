@@ -2,15 +2,24 @@
 东南亚跨境电商数据分析系统 - Railway 稳定部署版
 """
 import os
-from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# ==================== FastAPI 应用 ====================
+from config import BASE_DIR
+from database import engine, Base
+from models import (
+    UploadRecord, SaleRecord, AdRecord,
+    InventoryRecord, FilterConfig, AuditLog
+)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # 创建所有数据库表
+    Base.metadata.create_all(bind=engine)
     yield
+
 
 app = FastAPI(
     title="东南亚跨境电商数据分析系统",
@@ -18,7 +27,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# 跨域配置
+# 跨域
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,7 +36,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 根路由（解决Railway 404报错）
+# 注册路由
+from routers import dashboard, sales, ads, inventory, upload, export
+
+app.include_router(dashboard.router, prefix="/api", tags=["仪表盘"])
+app.include_router(sales.router, prefix="/api", tags=["销售数据"])
+app.include_router(ads.router, prefix="/api", tags=["广告数据"])
+app.include_router(inventory.router, prefix="/api", tags=["库存数据"])
+app.include_router(upload.router, prefix="/api", tags=["数据上传"])
+app.include_router(export.router, prefix="/api", tags=["数据导出"])
+
+
 @app.get("/")
 async def root():
     return {
@@ -37,14 +56,13 @@ async def root():
         "健康检查": "/api/health"
     }
 
-# 健康检查（Railway 专用）
+
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok", "time": datetime.utcnow().isoformat()}
+    return {"status": "ok"}
 
-# ==================== 服务启动（适配Railway端口） ====================
+
 if __name__ == "__main__":
     import uvicorn
-    # 自动读取Railway端口，无则使用8080
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
