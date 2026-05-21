@@ -366,7 +366,7 @@ def seed_demo_data(db: Session, tenant_id: uuid.UUID):
 
 # ==================== FastAPI 应用 ====================
 
-# 🔥 修复核心：空生命周期，无任何数据库操作，服务直接启动
+# 空生命周期，无任何数据库操作，彻底解决启动超时
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
@@ -387,6 +387,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 根路由访问，解决首页404问题
+@app.get("/")
+async def root():
+    return {"message": "东南亚跨境电商数据分析系统运行成功！", "docs": "/docs"}
 
 # ==================== 认证接口 ====================
 
@@ -1079,5 +1083,6 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    # 适配 Railway 环境变量端口，生产环境禁用热重载
+    port = int(os.getenv("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
